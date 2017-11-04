@@ -15,13 +15,6 @@
     <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
     <script type="text/javascript" src="scripts/material.min.js"></script>
     <script type="text/javascript" src="scripts/deseo.js"></script>
-    <style type="text/css">
-        .footer {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-        }
-    </style>
 </head>
 
 <body>
@@ -29,58 +22,9 @@
         <a class="navbar-brand" href="#">Wish lists</a>
     </nav>
 
-    <div id="main">
-        <div class="row">
-            <div class="col">
-                <div id="main-elm"></div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col mt-3 ml-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Card title</h4>
-                        <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">done</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">delete</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">arrow_upward</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">arrow_downward</i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col mt-3 mr-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Card title</h4>
-                        <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">done</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">delete</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">arrow_upward</i>
-                        </a>
-                        <a href="#" class="mdl-button">
-                            <i class="material-icons">arrow_downward</i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <footer class="footer bg-dark">
+    <div id="main"><!-- --></div>
+
+    <footer class="w-100 mt-3 bg-dark">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
@@ -91,7 +35,7 @@
     </footer>
 
     <script type="text/javascript">
-        var container = document.getElementById("main-elm");
+        var container = document.getElementById("main");
         var app = Elm.Main.embed(container);
     </script>
 </body>

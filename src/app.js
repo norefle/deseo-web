@@ -34,9 +34,9 @@ app.get(api("help"), (req, res) => {
 
 app.get(api("list/:user"), (req, res) => {
     Db.list(req.params.user).then((data) => {
-        res.status(200).json({ data });
+        res.status(200).json({ success: true, data });
     }).catch((error) => {
-        res.status(404).json({ error });
+        res.status(404).json({ success: false, error });
     });
 });
 

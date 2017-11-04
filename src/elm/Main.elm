@@ -2,7 +2,12 @@ module Main exposing (..)
 
 import Navigation exposing (Location)
 import UrlParser exposing (..)
-import Html exposing (Html)
+import Http exposing (..)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import IdeaCard as Card
+import Idea exposing (Idea)
+import Api
 
 
 type Route
@@ -15,10 +20,14 @@ type Page
 
 type Action
     = OnLocationChanged Location
+    | OnCard Card.Action
+    | OnApi Api.Event
 
 
 type alias Model =
     { page : Page
+    , error : String
+    , ideas : List Idea
     }
 
 
@@ -43,7 +52,7 @@ init : Location -> ( Model, Cmd Action )
 init location =
     case parseLocation location of
         RouteHome ->
-            ( { page = PageHome }, Cmd.none )
+            ( { page = PageHome, ideas = [], error = "" }, Cmd.map OnApi (Api.listWishes "test") )
 
 
 update : Action -> Model -> ( Model, Cmd Action )
@@ -52,12 +61,33 @@ update action model =
         OnLocationChanged location ->
             init location
 
+        OnCard _ ->
+            ( model, Cmd.none )
+
+        OnApi (Api.ReceivedWishes (Err error)) ->
+            ( { model | error = (toString error) }, Cmd.none )
+
+        OnApi (Api.ReceivedWishes (Ok response)) ->
+            ( { model | ideas = response.wishes }, Cmd.none )
+
 
 view : Model -> Html Action
 view model =
     case model.page of
         PageHome ->
-            Html.div [] [ Html.text "Elm!" ]
+            div [ class "container-fluid" ]
+                [ div [ class "row" ]
+                    (model.ideas
+                        |> List.map cards
+                    )
+                ]
+
+
+cards : Idea -> Html Action
+cards idea =
+    div [ class "col-12 mt-3" ]
+        [ Html.map OnCard (Card.view (Card.init idea))
+        ]
 
 
 subscriptions : Model -> Sub Action
