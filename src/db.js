@@ -22,8 +22,6 @@ function list(user) {
             });
         }).then((data) => {
             return data;
-        }).catch((error) => {
-            console.error("DB failure:", error);
         });
 }
 
