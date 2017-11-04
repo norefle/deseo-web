@@ -1,0 +1,28 @@
+{
+  "name": "deseo-web",
+  "version": "1.0.0",
+  "description": "Wish lists manager",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/norefle/deseo-web.git"
+  },
+  "keywords": [
+    "nodejs",
+    "elm"
+  ],
+  "author": "Dim L. Feiron",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/norefle/deseo-web/issues"
+  },
+  "homepage": "https://github.com/norefle/deseo-web#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "connect-timeout": "^1.9.0",
+    "express": "^4.16.2"
+  }
+}
