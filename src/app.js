@@ -2,6 +2,8 @@ const Express = require("express");
 const BodyParser = require("body-parser");
 const Timeout = require("connect-timeout");
 
+const Db = require(__dirname + "/db");
+
 const API_PREFIX = "/api/v1/";
 const DEFAULT_PORT = 8123;
 
@@ -27,6 +29,14 @@ app.get(api("help"), (req, res) => {
         endpoints: [
             describe("help", "Describes all available endpoints")
         ]
+    });
+});
+
+app.get(api("list/:user"), (req, res) => {
+    Db.list(req.params.user).then((data) => {
+        res.status(200).json({ data });
+    }).catch((error) => {
+        res.status(404).json({ error });
     });
 });
 
