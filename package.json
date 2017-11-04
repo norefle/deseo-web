@@ -2,9 +2,13 @@
   "name": "deseo-web",
   "version": "1.0.0",
   "description": "Wish lists manager",
+  "engines": {
+    "node": "8.9.0"
+  },
   "main": "src/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/app.js",
+    "test": "echo Done"
   },
   "repository": {
     "type": "git",
@@ -12,7 +16,8 @@
   },
   "keywords": [
     "nodejs",
-    "elm"
+    "elm",
+    "heroku"
   ],
   "author": "Dim L. Feiron",
   "license": "MIT",

@@ -1,15 +1,15 @@
-const Express = require('express');
-const BodyParser = require('body-parser');
-const Timeout = require('connect-timeout');
+const Express = require("express");
+const BodyParser = require("body-parser");
+const Timeout = require("connect-timeout");
 
 const API_PREFIX = "/api/v1/";
-const DEFAULT_ADDRES = "127.0.0.1";
 const DEFAULT_PORT = 8123;
 
 const app = Express();
 app.use(Timeout(10000));
 app.use(BodyParser.json());
-app.use(Express.static('src/static'));
+app.use(Express.static(__dirname + "/public"));
+app.set("port", (process.env.PORT || DEFAULT_PORT));
 
 function api(postfix) {
     return API_PREFIX + postfix;
@@ -30,6 +30,6 @@ app.get(api("help"), (req, res) => {
     });
 });
 
-app.listen(DEFAULT_PORT, DEFAULT_ADDRES, () => {
-    console.info(`Server running at: ${DEFAULT_ADDRES}:${DEFAULT_PORT}`);
+app.listen(app.get("port"), () => {
+    console.info("Server running on port", app.get("port"));
 });
