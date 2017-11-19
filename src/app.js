@@ -1,6 +1,7 @@
 const Express = require("express");
 const BodyParser = require("body-parser");
 const Timeout = require("connect-timeout");
+const Request = require("request-promise-native");
 
 if (process.env.NODE_ENV !== "production") {
     console.log("Loading dev environment...");
@@ -47,11 +48,25 @@ app.get(api("list/:user"), (request, response) => {
 });
 
 app.post(api("list/:user"), (request, response) => {
-    return handle(
-        request
-        , response
-        , Db.createItem(request.params.user, request.body)
-    );
+    let amazon = /^(?:https|http):\/\/amazon.de\/dp\/([A-Z0-9]+)\/?$/;
+    if (amazon.test(request.body.title)) {
+        console.log("Found Amazon URL to request data.");
+        Request.get(request.body.title)
+            .then((data) => {
+                console.log("Downloaded", data.length);
+                response.status(200).json({ success: true });
+            }).catch((error) => {
+                console.error("Failure", error);
+                response.status(404).json({ success: false, error });
+            });
+        return;
+    } else {
+        return handle(
+            request
+            , response
+            , Db.createItem(request.params.user, request.body)
+        );
+    }
 });
 
 app.delete(api("list/:user"), (request, response) => {
@@ -63,5 +78,10 @@ app.delete(api("list/:user"), (request, response) => {
 });
 
 app.listen(app.get("port"), () => {
-    console.info("The server is listening to the port", app.get("port"), process.env.NODE_ENV);
+    console.info(
+        "The server is listening to the port"
+        , app.get("port")
+        , "NODE_ENV ="
+        , process.env.NODE_EN
+    );
 });
