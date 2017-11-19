@@ -3,15 +3,15 @@ module Idea exposing (..)
 import Price exposing (Price)
 
 
-init : Idea
-init =
-    { id = "59fde065a486eea31caaf14c"
-    , title = "Amazon Fire TV"
-    , description = "Amazon Fir TV\n4K\nWant! Want! Want!"
-    , url = "https://www.amazon.com/dp/B01N32NCPM"
-    , image = "https://images-na.ssl-images-amazon.com/images/I/51AOKqohyVL._SL1000_.jpg"
+init : Title -> Idea
+init title =
+    { id = ""
+    , title = title
+    , description = ""
+    , url = ""
+    , image = ""
     , priority = 0
-    , price = 6999
+    , price = 0
     , added = "2017-11-04T16:00:00.000+0000"
     , status = True
     }

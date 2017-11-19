@@ -3,12 +3,14 @@ module Api exposing (..)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 import User exposing (User)
 import Idea exposing (Idea)
 
 
 type Event
     = ReceivedWishes (Result Http.Error WishesResponse)
+    | ReceivedPostAck (Result Http.Error PostResponse)
 
 
 
@@ -46,3 +48,43 @@ decodeIdea =
         |> Pipeline.required "price" Decode.int
         |> Pipeline.required "date" Decode.string
         |> Pipeline.optional "status" Decode.bool False
+
+
+encodeIdea : Idea -> Encode.Value
+encodeIdea idea =
+    Encode.object
+        [ ( "title", Encode.string idea.title )
+        , ( "description", Encode.string idea.description )
+        , ( "url", Encode.string idea.url )
+        , ( "image", Encode.string idea.image )
+        , ( "priority", Encode.int idea.priority )
+        , ( "price", Encode.int idea.price )
+        , ( "date", Encode.string idea.added )
+        , ( "status", Encode.bool idea.status )
+        ]
+
+
+
+{- POST new idea for user -}
+
+
+type alias PostResponse =
+    { success : Bool
+    , error : Maybe String
+    }
+
+
+decodePostResponse : Decode.Decoder PostResponse
+decodePostResponse =
+    Pipeline.decode PostResponse
+        |> Pipeline.required "success" Decode.bool
+        |> Pipeline.optional "error" (Decode.maybe Decode.string) Nothing
+
+
+addIdea : User -> Idea -> Cmd Event
+addIdea user idea =
+    Http.post
+        ("/api/v1/list/" ++ user)
+        (Http.jsonBody (encodeIdea idea))
+        decodePostResponse
+        |> Http.send ReceivedPostAck

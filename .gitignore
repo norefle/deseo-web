@@ -2,3 +2,4 @@
 /elm-stuff
 /src/public/scripts/deseo.js
 /.vscode
+.env

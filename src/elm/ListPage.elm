@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import IdeaCard as Card
 import User exposing (User)
+import Idea
 
 
 type Action
@@ -16,7 +17,8 @@ type Action
 
 
 type alias Model =
-    { error : Maybe String
+    { user : User
+    , error : Maybe String
     , ideas : List Card.Model
     , url : Maybe String
     }
@@ -24,7 +26,8 @@ type alias Model =
 
 init : User -> ( Model, Cmd Action )
 init user =
-    ( { error = Nothing
+    ( { user = user
+      , error = Nothing
       , ideas = []
       , url = Nothing
       }
@@ -44,8 +47,22 @@ update action model =
         OnApi (Api.ReceivedWishes (Ok response)) ->
             ( { model | error = Nothing, ideas = response.wishes }, Cmd.none )
 
+        OnApi (Api.ReceivedPostAck (Ok response)) ->
+            ( model, Cmd.map OnApi (Api.listWishes model.user) )
+
+        OnApi (Api.ReceivedPostAck (Err error)) ->
+            ( { model | error = Just (toString error) }, Cmd.none )
+
         OnCreateClicked ->
-            ( model, Cmd.none )
+            let
+                action =
+                    model.url
+                        |> Maybe.andThen (Idea.init >> Just)
+                        |> Maybe.andThen (Api.addIdea model.user >> Just)
+                        |> Maybe.andThen (Cmd.map OnApi >> Just)
+                        |> Maybe.withDefault Cmd.none
+            in
+                ( model, action )
 
         OnIdeaUpdated value ->
             ( { model | url = Just value }, Cmd.none )
@@ -68,7 +85,7 @@ ideaCreator =
                     [ input
                         [ type_ "text"
                         , class "form-control"
-                        , placeholder "https://amazon.de/dp/B01LQF9UKS"
+                        , placeholder "URL https://amazon.de/dp/B01LQF9UKS or Title"
                         , attribute "aria-label" "Add idea"
                         , onInput OnIdeaUpdated
                         ]
