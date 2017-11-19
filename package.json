@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node src/app.js",
     "test": "echo Done",
+    "elm-debug": "elm-make --yes --debug --output src/public/scripts/deseo.js src/elm/Main.elm",
     "postinstall": "elm-make --yes --output src/public/scripts/deseo.js src/elm/Main.elm"
   },
   "repository": {
