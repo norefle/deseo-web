@@ -53,7 +53,8 @@ decodeIdea =
 encodeIdea : Idea -> Encode.Value
 encodeIdea idea =
     Encode.object
-        [ ( "title", Encode.string idea.title )
+        [ ( "id", Encode.string idea.id )
+        , ( "title", Encode.string idea.title )
         , ( "description", Encode.string idea.description )
         , ( "url", Encode.string idea.url )
         , ( "image", Encode.string idea.image )
@@ -84,6 +85,32 @@ decodePostResponse =
 addIdea : User -> Idea -> Cmd Event
 addIdea user idea =
     Http.post
+        ("/api/v1/list/" ++ user)
+        (Http.jsonBody (encodeIdea idea))
+        decodePostResponse
+        |> Http.send ReceivedPostAck
+
+
+
+{- DELETE idea -}
+
+
+delete : String -> Http.Body -> Decode.Decoder a -> Http.Request a
+delete url body decoder =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = url
+        , body = body
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = True
+        }
+
+
+deleteIdea : User -> Idea -> Cmd Event
+deleteIdea user idea =
+    delete
         ("/api/v1/list/" ++ user)
         (Http.jsonBody (encodeIdea idea))
         decodePostResponse

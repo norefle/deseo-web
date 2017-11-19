@@ -38,8 +38,13 @@ init user =
 update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
-        OnCard _ ->
-            ( model, Cmd.none )
+        OnCard (Card.OnDeleteClicked card) ->
+            let
+                newIdeas =
+                    model.ideas
+                        |> List.filter (\item -> item.id /= card.id)
+            in
+                ( { model | ideas = newIdeas }, Cmd.map OnApi (Api.deleteIdea model.user card) )
 
         OnApi (Api.ReceivedWishes (Err error)) ->
             ( { model | error = Just (toString error) }, Cmd.none )
@@ -85,7 +90,7 @@ ideaCreator =
                     [ input
                         [ type_ "text"
                         , class "form-control"
-                        , placeholder "URL https://amazon.de/dp/B01LQF9UKS or Title"
+                        , placeholder "Title or Url like https://amazon.de/dp/B01LQF9UKS"
                         , attribute "aria-label" "Add idea"
                         , onInput OnIdeaUpdated
                         ]

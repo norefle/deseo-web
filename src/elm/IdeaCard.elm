@@ -2,6 +2,7 @@ module IdeaCard exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Idea exposing (Idea)
 
 
@@ -10,7 +11,7 @@ type alias Model =
 
 
 type Action
-    = None
+    = OnDeleteClicked Model
 
 
 init : Idea -> Model
@@ -38,7 +39,7 @@ view model =
         , div [ class "card-footer" ]
             [ a [ href "#", class "mdl-button" ]
                 [ i [ class "material-icons" ] [ text "done" ] ]
-            , a [ href "#", class "mdl-button" ]
+            , a [ href "javascript:void(0)", class "mdl-button", onClick (OnDeleteClicked model) ]
                 [ i [ class "material-icons" ] [ text "delete" ] ]
             , a [ href "#", class "mdl-button" ]
                 [ i [ class "material-icons" ] [ text "arrow_upward" ] ]

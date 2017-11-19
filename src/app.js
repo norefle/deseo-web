@@ -54,6 +54,14 @@ app.post(api("list/:user"), (request, response) => {
     );
 });
 
+app.delete(api("list/:user"), (request, response) => {
+    return handle(
+        request
+        , response
+        , Db.deleteItem(request.params.user, request.body)
+    );
+});
+
 app.listen(app.get("port"), () => {
     console.info("The server is listening to the port", app.get("port"), process.env.NODE_ENV);
 });
