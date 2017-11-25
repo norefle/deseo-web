@@ -48,15 +48,16 @@ app.get(api("list/:user"), (request, response) => {
 });
 
 app.post(api("list/:user"), (request, response) => {
-    if (Amazon.checkUrl("DE", request.body.title)) {
-        let action = Amazon.parse("DE", request.body.title).then((data) => {
+    if (Amazon.checkUrl(request.body.title)) {
+        let action = Amazon.parse(request.body.title).then((data) => {
             let updated = request.body;
             updated.id = null;
-            updated.url = updated.title;
+            updated.url = data.url || updated.title;
             updated.title = data.title || "";
             updated.image = data.image || "";
             updated.price = data.price || 0;
             updated.date = new Date().toISOString();
+            console.log(updated);
             return updated;
         }).then((item) => {
             return Db.createItem(request.params.user, item);

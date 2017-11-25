@@ -1,35 +1,41 @@
 const Cheerio = require("cheerio");
 const Request = require("request-promise-native");
 
-const URL_REGEX = {
-    DE: /^(?:https|http):\/\/(?:www\.)?amazon.de\/dp\/([A-Z0-9]+)\/?$/
-};
+const URL_REGEX = /^(?:https|http):\/\/(?:www\.)?amazon\.(de|com)\/(?:[\w\/]*)\/([A-Z0-9]{10})(?:.*)$/;
+const PRICE_REGEX = /^EUR\s*([0-9]+.?[0-9]*)$/;
 
-const PRICE_REGEX = {
-    DE: /^EUR\s*([0-9]+.?[0-9]*)$/
-};
-
-function checkUrl(region, url) {
-    let regex = URL_REGEX[region];
-    return regex
-        ? regex.test(url)
-        : false;
+function checkUrl(url) {
+    return URL_REGEX.test(url);
 }
 
-function parse(region, url) {
-    return Request.get(url + "?language=en_GB").then((data) => {
-        let $ = Cheerio.load(data);
-        let title = $("#productTitle").text();
-        let priceString = $("#priceblock_ourprice").text();
-        let price = PRICE_REGEX[region].exec(priceString);
-        price = price ? price[1] : null;
-        let image = $("#landingImage").attr("src");
-        return {
-            title: title ? title.trim() : null
-            , price: price ? Math.ceil(price * 100) : null
-            , image: image ? image.trim() : null
-        };
-    });
+function parse(url) {
+    let matched = URL_REGEX.exec(url);
+    if (matched && matched[1]) {
+        let region = matched[1];
+        let id = matched[2];
+        let productPage = `https://amazon.${region}/dp/${id}`;
+        return Request.get(productPage + "?language=en_GB").then((data) => {
+            let $ = Cheerio.load(data);
+            let title = $("#productTitle").text();
+            let priceString = $("#priceblock_ourprice").text();
+            let price = PRICE_REGEX.exec(priceString);
+            price = price ? price[1] : null;
+            let image = $("#landingImage");
+            let imageUrl = image && image[0] && image[0].attribs
+                ? image[0].attribs["data-old-hires"]
+                : null;
+            return {
+                title: title ? title.trim() : null
+                , price: price ? Math.ceil(price * 100) : null
+                , image: imageUrl
+                , url: productPage
+            };
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            reject(`Invalid URL ${url}`);
+        });
+    }
 }
 
 module.exports = {
