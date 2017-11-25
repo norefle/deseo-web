@@ -29,6 +29,7 @@
   "homepage": "https://github.com/norefle/deseo-web#readme",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "cheerio": "^1.0.0-rc.2",
     "connect-timeout": "^1.9.0",
     "dotenv": "^4.0.0",
     "elm": "^0.18.0",
