@@ -1,7 +1,6 @@
 const Express = require("express");
 const BodyParser = require("body-parser");
 const Timeout = require("connect-timeout");
-const Request = require("request-promise-native");
 
 if (process.env.NODE_ENV !== "production") {
     console.log("Loading dev environment...");
@@ -9,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const Db = require(__dirname + "/db");
+const Amazon = require(__dirname + "/amazon");
 
 const API_PREFIX = "/api/v1/";
 const DEFAULT_PORT = 8123;
@@ -48,18 +48,25 @@ app.get(api("list/:user"), (request, response) => {
 });
 
 app.post(api("list/:user"), (request, response) => {
-    let amazon = /^(?:https|http):\/\/amazon.de\/dp\/([A-Z0-9]+)\/?$/;
-    if (amazon.test(request.body.title)) {
-        console.log("Found Amazon URL to request data.");
-        Request.get(request.body.title)
-            .then((data) => {
-                console.log("Downloaded", data.length);
-                response.status(200).json({ success: true });
-            }).catch((error) => {
-                console.error("Failure", error);
-                response.status(404).json({ success: false, error });
-            });
-        return;
+    if (Amazon.checkUrl("DE", request.body.title)) {
+        let action = Amazon.parse("DE", request.body.title).then((data) => {
+            let updated = request.body;
+            updated.id = null;
+            updated.url = updated.title;
+            updated.title = data.title || "";
+            updated.image = data.image || "";
+            updated.price = data.price || 0;
+            updated.date = new Date().toISOString();
+            return updated;
+        }).then((item) => {
+            return Db.createItem(request.params.user, item);
+        });
+
+        return handle(
+            request
+            , response
+            , action
+        );
     } else {
         return handle(
             request
