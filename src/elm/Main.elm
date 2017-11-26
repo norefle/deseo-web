@@ -5,6 +5,7 @@ import UrlParser exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import ListPage
+import User exposing (User)
 
 
 type Route
@@ -18,6 +19,12 @@ type Page
 type Action
     = OnLocationChanged Location
     | OnListPage ListPage.Action
+
+
+type alias Flags =
+    { user : User
+    , token : String
+    }
 
 
 type alias Model =
@@ -43,13 +50,13 @@ parseLocation location =
             RouteHome
 
 
-init : Location -> ( Model, Cmd Action )
-init location =
+init : Flags -> Location -> ( Model, Cmd Action )
+init flags location =
     case parseLocation location of
         RouteHome ->
             let
                 ( model, action ) =
-                    ListPage.init "test"
+                    ListPage.init flags.user
             in
                 ( { activePage = PageHome, listModel = model }, Cmd.map OnListPage action )
 
@@ -83,9 +90,10 @@ subscriptions model =
 
 main : Program Never Model Action
 main =
-    Navigation.program OnLocationChanged
+    Navigation.programWithFlags OnLocationChanged
         { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
+
