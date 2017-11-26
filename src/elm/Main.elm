@@ -28,7 +28,9 @@ type alias Flags =
 
 
 type alias Model =
-    { activePage : Page
+    { user : User
+    , token : String
+    , activePage : Page
     , listModel : ListPage.Model
     }
 
@@ -58,14 +60,24 @@ init flags location =
                 ( model, action ) =
                     ListPage.init flags.user
             in
-                ( { activePage = PageHome, listModel = model }, Cmd.map OnListPage action )
+                ( { user = flags.user
+                  , token = flags.token
+                  , activePage = PageHome
+                  , listModel = model
+                  }
+                , Cmd.map OnListPage action
+                )
 
 
 update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
         OnLocationChanged location ->
-            init location
+            let
+                flags =
+                    { user = model.user, token = model.token }
+            in
+                init flags location
 
         OnListPage subaction ->
             let
@@ -88,7 +100,7 @@ subscriptions model =
     Sub.none
 
 
-main : Program Never Model Action
+main : Program Flags Model Action
 main =
     Navigation.programWithFlags OnLocationChanged
         { init = init
@@ -96,4 +108,3 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
-
