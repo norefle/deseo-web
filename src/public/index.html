@@ -7,8 +7,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!--meta name="google-signin-client_id" content="710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"-->
-
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="styles/material.min.css" />
@@ -33,19 +31,15 @@
             gapi.auth2.init({
                 client_id: "710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"
             }).then(function (googleAuth) {
-                console.log("Logged in", googleAuth);
-
                 app = Elm.Main.fullscreen();
 
                 app.ports.login.subscribe(function (_) {
-                    console.log("Log in");
                     googleAuth.signIn().then(function () {
                         onSignIn(googleAuth.currentUser.get());
                     });
                 });
 
                 app.ports.logout.subscribe(function (_) {
-                    console.log("Log out");
                     googleAuth.signOut().then(function () {
                         app.ports.authenticated.send(false);
                     });
@@ -63,8 +57,6 @@
             var profile = googleUser.getBasicProfile();
             var id = "google:" + profile.getId();
             var token = googleUser.getAuthResponse().id_token;
-
-            console.log("Logged in", app, id, token);
 
             app.ports.user.send({
                 user: id

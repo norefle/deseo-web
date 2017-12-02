@@ -1,14 +1,13 @@
 module Main exposing (..)
 
+import Actor
 import Footer
 import Header
 import Html exposing (..)
 import InitialPage
-import Json.Encode
 import Json.Decode
 import ListPage
 import Navigation exposing (Location)
-import Ports
 import UrlParser exposing (..)
 import User exposing (User)
 
@@ -24,12 +23,11 @@ type Page
 
 type Action
     = OnLocationChanged Location
+    | OnActor Actor.Action
     | OnHeader Header.Action
     | OnFooter Never
     | OnInitialPage InitialPage.Action
     | OnListPage ListPage.Action
-    | OnUser Json.Encode.Value
-    | OnAuthenticated Bool
 
 
 type alias Model =
@@ -70,7 +68,7 @@ init : Location -> ( Model, Cmd Action )
 init location =
     case parseLocation location of
         RouteHome ->
-            ( empty, Cmd.none )
+            Actor.nope empty
 
 
 update : Action -> Model -> ( Model, Cmd Action )
@@ -80,69 +78,48 @@ update action model =
             init location
 
         OnHeader (Header.RequestedLogOut) ->
-            ( model, Ports.logout "" )
+            Actor.logout model
 
         OnHeader subaction ->
-            ( model, Cmd.none )
+            Actor.nope model
 
         OnFooter _ ->
-            ( model, Cmd.none )
+            Actor.nope model
 
         OnInitialPage (InitialPage.RequestedLogin) ->
-            ( model, Ports.login "" )
+            Actor.login model
 
         OnListPage subaction ->
             let
                 ( pageModel, pageAction ) =
-                    model.listModel
-                        |> Maybe.andThen
-                            (\x ->
-                                let
-                                    ( m, a ) =
-                                        ListPage.update subaction x
-                                in
-                                    Just ( Just m, a )
-                            )
-                        |> Maybe.withDefault ( Nothing, Cmd.none )
+                    Actor.orNope (ListPage.update subaction) model.listModel
             in
                 ( { model | listModel = pageModel }, Cmd.map OnListPage pageAction )
 
-        OnUser value ->
+        OnActor (Actor.ReceivedUser value) ->
             let
                 newHeader =
                     Header.authenticate model.header True
 
-                parsed =
-                    Json.Decode.decodeValue User.fromJson value
-
                 newUser =
-                    case parsed of
-                        Ok user ->
-                            Just user
-
-                        Err error ->
-                            Nothing
+                    Actor.user value
 
                 ( newListModel, newAction ) =
-                    newUser
-                        |> Maybe.andThen
-                            (\x ->
-                                let
-                                    ( m, a ) =
-                                        ListPage.init x
-                                in
-                                    Just ( Just m, a )
-                            )
-                        |> Maybe.withDefault ( Nothing, Cmd.none )
+                    ListPage.init newUser
             in
-                ( { model | header = newHeader, activePage = PageList, user = newUser, listModel = newListModel }
+                ( { model
+                    | header = newHeader
+                    , activePage = PageList
+                    , user = newUser
+                    , listModel = newListModel
+                  }
                 , Cmd.map OnListPage newAction
                 )
 
-        OnAuthenticated True ->
-            ( model, Cmd.none )
+        OnActor (Actor.ReceivedAuthenticated True) ->
+            Actor.nope model
 
-        OnAuthenticated False ->
+        OnActor (Actor.ReceivedAuthenticated False) ->
             let
                 newHeader =
                     Header.authenticate model.header False
@@ -152,31 +129,25 @@ update action model =
 
 view : Model -> Html Action
 view model =
-    case model.activePage of
-        PageHome ->
-            div []
-                [ Header.view model.header |> Html.map OnHeader
-                , InitialPage.view |> Html.map OnInitialPage
-                , Footer.view |> Html.map OnFooter
-                ]
+    let
+        body =
+            case model.activePage of
+                PageHome ->
+                    InitialPage.view |> Html.map OnInitialPage
 
-        PageList ->
-            div []
-                [ Header.view model.header |> Html.map OnHeader
-                , model.listModel
-                    |> (Maybe.andThen (ListPage.view >> Just))
-                    |> Maybe.withDefault (Html.text "")
-                    |> Html.map OnListPage
-                , Footer.view |> Html.map OnFooter
-                ]
+                PageList ->
+                    Actor.orNothing ListPage.view model.listModel |> Html.map OnListPage
+    in
+        div []
+            [ Header.view model.header |> Html.map OnHeader
+            , body
+            , Footer.view |> Html.map OnFooter
+            ]
 
 
 subscriptions : Model -> Sub Action
 subscriptions model =
-    Sub.batch
-        [ Ports.user OnUser
-        , Ports.authenticated OnAuthenticated
-        ]
+    Actor.subscribe model |> Sub.map OnActor
 
 
 main : Program Never Model Action

@@ -27,17 +27,23 @@ type alias Model =
     }
 
 
-init : User -> ( Model, Cmd Action )
+init : Maybe User -> ( Maybe Model, Cmd Action )
 init user =
-    ( { user = user
-      , error = Nothing
-      , demand = 0
-      , supply = 0
-      , ideas = []
-      , url = Nothing
-      }
-    , Cmd.map OnApi (Api.listWishes user)
-    )
+    case user of
+        Just value ->
+            ( Just
+                { user = value
+                , error = Nothing
+                , demand = 0
+                , supply = 0
+                , ideas = []
+                , url = Nothing
+                }
+            , Cmd.map OnApi (Api.listWishes value)
+            )
+
+        Nothing ->
+            ( Nothing, Cmd.none )
 
 
 update : Action -> Model -> ( Model, Cmd Action )

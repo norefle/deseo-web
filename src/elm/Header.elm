@@ -1,5 +1,6 @@
 module Header exposing (Action(..), Model, authenticate, init, update, view)
 
+import Actor
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -32,12 +33,7 @@ update action model =
             ( { model | authenticated = status }, Cmd.none )
 
         RequestedLogOut ->
-            nothing model
-
-
-nothing : Model -> ( Model, Cmd Action )
-nothing model =
-    ( model, Cmd.none )
+            Actor.nope model
 
 
 view : Model -> Html Action
@@ -54,7 +50,7 @@ view model =
         , if model.authenticated then
             logoutBtn
           else
-            text ""
+            Actor.nothing
         ]
 
 
