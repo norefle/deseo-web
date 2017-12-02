@@ -26,7 +26,7 @@ view model =
         [ div [ class "card-body" ]
             [ a [ href model.url ]
                 [ img
-                    [ class "float-left"
+                    [ class "float-md-left float-sm-none"
                     , style
                         [ ( "max-width", "20rem" )
                         , ( "max-height", "15rem" )

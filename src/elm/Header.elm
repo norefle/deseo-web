@@ -39,14 +39,12 @@ update action model =
 view : Model -> Html Action
 view model =
     nav
-        [ id "main-nav"
-        , class "navbar navbar-expand-md navbar-dark bg-dark"
-        ]
+        [ class "navbar navbar-expand-md navbar-dark bg-dark d-flex justify-content-start" ]
         [ a
             [ class "navbar-brand"
             , href "#"
             ]
-            [ text "Wish lists" ]
+            [ text "Deseo" ]
         , if model.authenticated then
             logoutBtn
           else
@@ -57,7 +55,7 @@ view model =
 logoutBtn : Html Action
 logoutBtn =
     a
-        [ class "btn btn-dark float-right"
+        [ class "btn btn-dark ml-auto"
         , href "javascript:void(0)"
         , onClick RequestedLogOut
         ]
