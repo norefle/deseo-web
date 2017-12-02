@@ -25,7 +25,7 @@ type alias WishesResponse =
 
 listWishes : User -> Cmd Event
 listWishes user =
-    Http.get ("/api/v1/list/" ++ user) decodeWishesResponse
+    Http.get ("/api/v1/list/" ++ user.id) decodeWishesResponse
         |> Http.send ReceivedWishes
 
 
@@ -85,7 +85,7 @@ decodePostResponse =
 addIdea : User -> Idea -> Cmd Event
 addIdea user idea =
     Http.post
-        ("/api/v1/list/" ++ user)
+        ("/api/v1/list/" ++ user.id)
         (Http.jsonBody (encodeIdea idea))
         decodePostResponse
         |> Http.send ReceivedPostAck
@@ -111,7 +111,7 @@ delete url body decoder =
 deleteIdea : User -> Idea -> Cmd Event
 deleteIdea user idea =
     delete
-        ("/api/v1/list/" ++ user)
+        ("/api/v1/list/" ++ user.id)
         (Http.jsonBody (encodeIdea idea))
         decodePostResponse
         |> Http.send ReceivedPostAck

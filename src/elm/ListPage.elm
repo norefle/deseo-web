@@ -95,12 +95,14 @@ totalDemand ideas =
 
 view : Model -> Html Action
 view model =
-    div [ class "row" ]
-        ([ balance model
-         , ideaCreator
-         ]
-            ++ (ideas model.ideas)
-        )
+    div [ class "container-fluid" ]
+        [ div [ class "row" ]
+            ([ balance model
+             , ideaCreator
+             ]
+                ++ (ideas model.ideas)
+            )
+        ]
 
 
 balance : Model -> Html Action

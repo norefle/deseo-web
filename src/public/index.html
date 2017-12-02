@@ -7,13 +7,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <meta name="google-signin-client_id" content="710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com">
+    <!--meta name="google-signin-client_id" content="710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"-->
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="styles/material.min.css" />
 
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://apis.google.com/js/platform.js"></script>
     <script type="text/javascript" src="scripts/jquery-3.2.1.slim.min.js"></script>
     <script type="text/javascript" src="scripts/popper.min.js"></script>
     <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
@@ -22,58 +22,57 @@
 </head>
 
 <body>
-    <nav id="main-nav" class="navbar navbar-expand-md navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">Wish lists</a>
-    </nav>
-
-    <div id="main">
-        <div class="row mt-3">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Sign in</h4>
-                        <div class="d-flex justify-content-center">
-                            <div class="g-signin2" data-onsuccess="onSignIn"></div>
-                        </div>
-                    </div>
-            </div>
-        </div>
-    </div>
-
-    <footer class="w-100 mt-3 bg-dark">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <p class="navbar-text text-light">Wish list &copy; 2017</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
     <script type="text/javascript">
+        var app;
+
+        function load() {
+            gapi.load("auth2", init);
+        }
+
+        function init() {
+            gapi.auth2.init({
+                client_id: "710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"
+            }).then(function (googleAuth) {
+                console.log("Logged in", googleAuth);
+
+                app = Elm.Main.fullscreen();
+
+                app.ports.login.subscribe(function (_) {
+                    console.log("Log in");
+                    googleAuth.signIn().then(function () {
+                        onSignIn(googleAuth.currentUser.get());
+                    });
+                });
+
+                app.ports.logout.subscribe(function (_) {
+                    console.log("Log out");
+                    googleAuth.signOut().then(function () {
+                        app.ports.authenticated.send(false);
+                    });
+                });
+
+                if (googleAuth.isSignedIn.get()) {
+                    onSignIn(googleAuth.currentUser.get());
+                }
+            }).catch(function (err) {
+                console.error("Logged with failure", err);
+            });
+        }
+
         function onSignIn(googleUser) {
             var profile = googleUser.getBasicProfile();
-            var user = "google:" + profile.getId();
+            var id = "google:" + profile.getId();
             var token = googleUser.getAuthResponse().id_token;
 
-            $("#main-nav").append($("<a class='btn btn-dark float-right' href='/'/>")
-                .text("Log out")
-                .click(signOut)
-            );
+            console.log("Logged in", app, id, token);
 
-            var container = document.getElementById("main");
-            var app = Elm.Main.embed(container, {
-                user: user
+            app.ports.user.send({
+                user: id
                 , token: token
             });
         }
 
-        function signOut() {
-            var auth2 = gapi.auth2.getAuthInstance();
-            auth2.signOut().then(function() {
-                // do nothing
-            });
-        }
+        load();
     </script>
 </body>
 
