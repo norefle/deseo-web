@@ -18,13 +18,20 @@ view =
                     [ div [ class "card-body" ]
                         [ h4 [ class "card-title" ]
                             [ text "Sign in" ]
-                        , div [ class "d-flex justify-content-center" ]
+                        , div
+                            [ class "d-flex justify-content-center" ]
                             [ a
-                                [ class "g-signin2 btn"
+                                [ class "btn"
                                 , href "javascript:void(0)"
                                 , onClick RequestedLogin
                                 ]
-                                [ text "Sign in with google" ]
+                                [ img
+                                    [ class "img-fluid mr-1"
+                                    , src "/images/logo-google.svg"
+                                    ]
+                                    []
+                                , text "Log in with google"
+                                ]
                             ]
                         ]
                     ]
