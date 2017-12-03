@@ -24,23 +24,27 @@ view : Model -> Html Action
 view model =
     div [ class "card" ]
         [ div [ class "card-body" ]
-            [ a [ href model.url ]
-                [ img
-                    [ class "float-md-left float-sm-none"
-                    , style
-                        [ ( "max-width", "20rem" )
-                        , ( "max-height", "15rem" )
+            [ div [ class "d-flex justify-content-center float-md-left float-sm-none" ]
+                [ a [ href model.url ]
+                    [ img
+                        [ class "img-fluid"
+                        , style
+                            [ ( "max-width", "20rem" )
+                            , ( "max-height", "15rem" )
+                            ]
+                        , src model.image
                         ]
-                    , src model.image
+                        []
                     ]
-                    []
                 ]
-            , h4 [ class "card-title" ]
-                [ span [] [ text model.title ]
-                , span [ class "float-right text-danger" ] [ text (Price.toString model.price) ]
+            , div [ class "d-flex justify-content-start" ]
+                [ h4 [ class "card-title" ] [ text model.title ]
+                , h4 [ class "ml-auto text-danger" ] [ text (Price.toString model.price) ]
                 ]
-            , h6 [ class "card-subtitle mb-2 text-muted" ] [ text model.added ]
-            , p [ class "card-text" ] [ text model.description ]
+            , div [ class "d-flex flex-column" ]
+                [ h6 [ class "card-subtitle mb-2 text-muted" ] [ text model.added ]
+                , p [ class "card-text" ] [ text model.description ]
+                ]
             ]
         , div [ class "card-footer" ]
             [ a [ href "javascript:void(0)", class "mdl-button text-muted" ]
