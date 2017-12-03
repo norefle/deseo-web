@@ -1,11 +1,13 @@
 module Main exposing (..)
 
 import Actor
+import Api
 import Footer
 import Header
 import Html exposing (..)
 import InitialPage
 import Json.Decode
+import ListInfo exposing (ListInfo)
 import ListPage
 import Navigation exposing (Location)
 import UrlParser exposing (..)
@@ -28,10 +30,12 @@ type Action
     | OnFooter Never
     | OnInitialPage InitialPage.Action
     | OnListPage ListPage.Action
+    | OnApi Api.Event
 
 
 type alias Model =
     { user : Maybe User
+    , lists : List ListInfo
     , header : Header.Model
     , activePage : Page
     , listModel : Maybe ListPage.Model
@@ -58,6 +62,7 @@ parseLocation location =
 empty : Model
 empty =
     { user = Nothing
+    , lists = []
     , header = Header.init False
     , activePage = PageHome
     , listModel = Nothing
@@ -98,23 +103,57 @@ update action model =
 
         OnActor (Actor.ReceivedUser value) ->
             let
-                newHeader =
-                    Header.authenticate model.header True
-
                 newUser =
                     Actor.user value
 
-                ( newListModel, newAction ) =
-                    ListPage.init newUser
+                newAction =
+                    newUser
+                        |> Maybe.andThen (Api.listLists >> Just)
+                        |> Maybe.withDefault Cmd.none
+            in
+                ( { model | user = newUser }, Cmd.map OnApi newAction )
+
+        OnApi (Api.ReceivedLists (Ok response)) ->
+            let
+                newHeader =
+                    Header.authenticate model.header True
+
+                newLists =
+                    response.lists
+
+                newList =
+                    List.head response.lists
+
+                newModelAction =
+                    case ( model.user, newList ) of
+                        ( Just user, Just list ) ->
+                            Just (ListPage.init user list)
+
+                        _ ->
+                            Nothing
+
+                ( newModel, newAction ) =
+                    case newModelAction of
+                        Just ( pageModel, pageAction ) ->
+                            ( Just pageModel, Cmd.map OnListPage pageAction )
+
+                        Nothing ->
+                            ( Nothing, Cmd.none )
             in
                 ( { model
-                    | header = newHeader
+                    | lists = newLists
+                    , listModel = newModel
+                    , header = newHeader
                     , activePage = PageList
-                    , user = newUser
-                    , listModel = newListModel
                   }
-                , Cmd.map OnListPage newAction
+                , newAction
                 )
+
+        OnApi (Api.ReceivedLists (Err error)) ->
+            Actor.nope model
+
+        OnApi _ ->
+            Actor.nope model
 
         OnActor (Actor.ReceivedAuthenticated True) ->
             Actor.nope model

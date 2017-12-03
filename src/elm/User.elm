@@ -1,13 +1,21 @@
-module User exposing (User, fromJson)
+module User exposing (..)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 
 
 type alias User =
-    { id : String
-    , token : String
+    { id : Id
+    , token : Token
     }
+
+
+type alias Id =
+    String
+
+
+type alias Token =
+    String
 
 
 fromJson : Decode.Decoder User

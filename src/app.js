@@ -39,15 +39,23 @@ function handle(request, response, action) {
     });
 }
 
-app.get(api("list/:user"), (request, response) => {
+app.get(api("lists"), (request, response) => {
     return handle(
         request
         , response
-        , Db.listItems(request.params.user)
+        , Db.listLists(request.query.user)
     );
 });
 
-app.post(api("list/:user"), (request, response) => {
+app.get(api("lists/:listId"), (request, response) => {
+    return handle(
+        request
+        , response
+        , Db.listItems(request.query.user, request.params.listId)
+    );
+});
+
+app.post(api("lists/:listId"), (request, response) => {
     if (Amazon.checkUrl(request.body.title)) {
         let action = Amazon.parse(request.body.title).then((data) => {
             let updated = request.body;
@@ -60,7 +68,7 @@ app.post(api("list/:user"), (request, response) => {
             console.log(updated);
             return updated;
         }).then((item) => {
-            return Db.createItem(request.params.user, item);
+            return Db.createItem(request.query.user, request.params.listId, item);
         });
 
         return handle(
@@ -72,16 +80,16 @@ app.post(api("list/:user"), (request, response) => {
         return handle(
             request
             , response
-            , Db.createItem(request.params.user, request.body)
+            , Db.createItem(request.query.user, request.params.listId, request.body)
         );
     }
 });
 
-app.delete(api("list/:user"), (request, response) => {
+app.delete(api("lists/:listId"), (request, response) => {
     return handle(
         request
         , response
-        , Db.deleteItem(request.params.user, request.body)
+        , Db.deleteItem(request.query.user, request.params.listId, request.body)
     );
 });
 

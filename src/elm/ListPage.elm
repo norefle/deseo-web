@@ -1,13 +1,15 @@
 module ListPage exposing (..)
 
+import Actor
 import Api
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Idea exposing (Idea)
 import IdeaCard as Card
+import ListInfo exposing (ListInfo)
 import Price exposing (Price)
 import User exposing (User)
-import Idea exposing (Idea)
 
 
 type Action
@@ -19,6 +21,7 @@ type Action
 
 type alias Model =
     { user : User
+    , list : ListInfo
     , error : Maybe String
     , demand : Price
     , supply : Price
@@ -27,23 +30,18 @@ type alias Model =
     }
 
 
-init : Maybe User -> ( Maybe Model, Cmd Action )
-init user =
-    case user of
-        Just value ->
-            ( Just
-                { user = value
-                , error = Nothing
-                , demand = 0
-                , supply = 0
-                , ideas = []
-                , url = Nothing
-                }
-            , Cmd.map OnApi (Api.listWishes value)
-            )
-
-        Nothing ->
-            ( Nothing, Cmd.none )
+init : User -> ListInfo -> ( Model, Cmd Action )
+init user list =
+    ( { user = user
+      , list = list
+      , error = Nothing
+      , demand = 0
+      , supply = 0
+      , ideas = []
+      , url = Nothing
+      }
+    , Cmd.map OnApi (Api.listWishes user list.id)
+    )
 
 
 update : Action -> Model -> ( Model, Cmd Action )
@@ -58,7 +56,9 @@ update action model =
                 newDemand =
                     totalDemand newIdeas
             in
-                ( { model | ideas = newIdeas, demand = newDemand }, Cmd.map OnApi (Api.deleteIdea model.user card) )
+                ( { model | ideas = newIdeas, demand = newDemand }
+                , Cmd.map OnApi (Api.deleteIdea model.user model.list.id card)
+                )
 
         OnApi (Api.ReceivedWishes (Err error)) ->
             ( { model | error = Just (toString error) }, Cmd.none )
@@ -74,17 +74,27 @@ update action model =
                 ( { model | error = Nothing, ideas = response.wishes, demand = newDemand }, Cmd.none )
 
         OnApi (Api.ReceivedPostAck (Ok response)) ->
-            ( model, Cmd.map OnApi (Api.listWishes model.user) )
+            let
+                newAction =
+                    Api.listWishes model.user model.list.id
+            in
+                ( model, Cmd.map OnApi newAction )
 
         OnApi (Api.ReceivedPostAck (Err error)) ->
             ( { model | error = Just (toString error) }, Cmd.none )
+
+        OnApi (Api.ReceivedLists (Ok response)) ->
+            Actor.nope model
+
+        OnApi (Api.ReceivedLists (Err error)) ->
+            Actor.nope model
 
         OnCreateClicked ->
             let
                 action =
                     model.url
                         |> Maybe.andThen (Idea.init >> Just)
-                        |> Maybe.andThen (Api.addIdea model.user >> Just)
+                        |> Maybe.andThen (Api.addIdea model.user model.list.id >> Just)
                         |> Maybe.andThen (Cmd.map OnApi >> Just)
                         |> Maybe.withDefault Cmd.none
             in
@@ -118,7 +128,7 @@ balance model =
             [ div [ class "card-body" ]
                 [ h4 [ class "card-title" ]
                     [ span []
-                        [ text "Balance" ]
+                        [ text model.list.name ]
                     , div [ class "float-right" ]
                         [ span [ class "text-danger" ] [ text (Price.toString model.demand) ]
                         , span [] [ text " / " ]

@@ -1,20 +1,56 @@
 module Api exposing (..)
 
 import Http
+import Idea exposing (Idea)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import ListInfo exposing (ListInfo)
 import User exposing (User)
-import Idea exposing (Idea)
 
 
 type Event
-    = ReceivedWishes (Result Http.Error WishesResponse)
+    = ReceivedLists (Result Http.Error ListsResponse)
+    | ReceivedWishes (Result Http.Error WishesResponse)
     | ReceivedPostAck (Result Http.Error PostResponse)
 
 
 
 {- GET lists for user -}
+
+
+type alias ListsResponse =
+    { success : Bool
+    , lists : List ListInfo
+    }
+
+
+listLists : User -> Cmd Event
+listLists user =
+    Http.get ("/api/v1/lists?user=" ++ user.id) decodeListResponse
+        |> Http.send ReceivedLists
+
+
+decodeListResponse : Decode.Decoder ListsResponse
+decodeListResponse =
+    Pipeline.decode ListsResponse
+        |> Pipeline.required "success" Decode.bool
+        |> Pipeline.optional "data" (Decode.list decodeListInfo) []
+
+
+decodeListInfo : Decode.Decoder ListInfo
+decodeListInfo =
+    Pipeline.decode ListInfo
+        |> Pipeline.required "_id" Decode.string
+        |> Pipeline.required "list" Decode.string
+        |> Pipeline.required "owner" Decode.string
+        |> Pipeline.optional "readers" (Decode.list Decode.string) []
+        |> Pipeline.optional "writers" (Decode.list Decode.string) []
+        |> Pipeline.required "created" Decode.string
+
+
+
+{- GET wishes for list -}
 
 
 type alias WishesResponse =
@@ -23,9 +59,9 @@ type alias WishesResponse =
     }
 
 
-listWishes : User -> Cmd Event
-listWishes user =
-    Http.get ("/api/v1/list/" ++ user.id) decodeWishesResponse
+listWishes : User -> ListInfo.Id -> Cmd Event
+listWishes user listId =
+    Http.get ("/api/v1/lists/" ++ listId ++ "?user=" ++ user.id) decodeWishesResponse
         |> Http.send ReceivedWishes
 
 
@@ -75,20 +111,20 @@ type alias PostResponse =
     }
 
 
+addIdea : User -> ListInfo.Id -> Idea -> Cmd Event
+addIdea user listId idea =
+    Http.post
+        ("/api/v1/lists/" ++ listId ++ "?user=" ++ user.id)
+        (Http.jsonBody (encodeIdea idea))
+        decodePostResponse
+        |> Http.send ReceivedPostAck
+
+
 decodePostResponse : Decode.Decoder PostResponse
 decodePostResponse =
     Pipeline.decode PostResponse
         |> Pipeline.required "success" Decode.bool
         |> Pipeline.optional "error" (Decode.maybe Decode.string) Nothing
-
-
-addIdea : User -> Idea -> Cmd Event
-addIdea user idea =
-    Http.post
-        ("/api/v1/list/" ++ user.id)
-        (Http.jsonBody (encodeIdea idea))
-        decodePostResponse
-        |> Http.send ReceivedPostAck
 
 
 
@@ -108,10 +144,10 @@ delete url body decoder =
         }
 
 
-deleteIdea : User -> Idea -> Cmd Event
-deleteIdea user idea =
+deleteIdea : User -> ListInfo.Id -> Idea -> Cmd Event
+deleteIdea user listId idea =
     delete
-        ("/api/v1/list/" ++ user.id)
+        ("/api/v1/lists/" ++ listId ++ "?user=" ++ user.id)
         (Http.jsonBody (encodeIdea idea))
         decodePostResponse
         |> Http.send ReceivedPostAck
