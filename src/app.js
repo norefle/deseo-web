@@ -55,6 +55,7 @@ app.get(api("lists/:listId"), (request, response) => {
     );
 });
 
+// TODO: change the endpoint to lists/:id/item
 app.post(api("lists/:listId"), (request, response) => {
     if (Amazon.checkUrl(request.body.title)) {
         let action = Amazon.parse(request.body.title).then((data) => {
@@ -85,6 +86,20 @@ app.post(api("lists/:listId"), (request, response) => {
     }
 });
 
+app.put(api("lists/:listId/item/:itemId"), (request, response) => {
+    return handle(
+        request
+        , response
+        , Db.updateItem(
+            request.query.user
+            , request.params.listId
+            , request.params.itemId
+            , request.body
+        )
+    );
+});
+
+// TODO: change the endpoint to lists/:id/item/:id
 app.delete(api("lists/:listId"), (request, response) => {
     return handle(
         request

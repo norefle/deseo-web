@@ -9,7 +9,7 @@ const COLLECTION_NAME_LISTS = "lists";
 
 function client() {
     let url = `mongodb://${DB_USER}:${DB_PASSWD}@${DB_URL}`;
-    return MongoClient.connect(url);
+    return MongoClient.connect(url, { ignoreUndefined: true });
 }
 
 function collection(name, callback) {
@@ -73,7 +73,7 @@ function listItems(user, listId) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.read) {
             return collection(COLLECTION_NAME_LISTS, (table) => {
-                return table.find({ user })
+                return table.find({ user, list: ObjectId(listId) })
                     .sort([["priority", 1]])
                     .toArray();
             });
@@ -89,7 +89,9 @@ function createItem(user, listId, item) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.write) {
             return collection(COLLECTION_NAME_LISTS, (table) => {
+                item.id = null;
                 item.user = user;
+                item.list = ObjectId(listId);
                 return table.insertOne(item);
             });
         } else {
@@ -100,11 +102,36 @@ function createItem(user, listId, item) {
     });
 }
 
+function updateItem(user, listId, itemId, item) {
+    return getAccess(user, listId).then((access) => {
+        // TODO: extract common code with write / read access checks.
+        if (access.owner || access.write) {
+            return collection(COLLECTION_NAME_LISTS, (table) => {
+                item.id = null;
+                return table.findOneAndReplace({
+                        _id: ObjectId(itemId)
+                        , user
+                        , list: ObjectId(listId)
+                    }
+                    , item);
+            });
+        } else {
+            throw "Access denied.";
+        }
+    }).then((data) => {
+        return true;
+    });
+}
+
 function deleteItem(user, listId, item) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.write) {
             return collection(COLLECTION_NAME_LISTS, (table) => {
-                return table.deleteOne({ _id: ObjectId(item.id) });
+                return table.deleteOne({
+                    _id: ObjectId(item.id)
+                    , user
+                    , list: ObjectId(listId)
+                });
             });
         } else {
             throw "Access denied";
@@ -119,5 +146,6 @@ module.exports = {
     , createList: createList
     , listItems: listItems
     , createItem: createItem
+    , updateItem: updateItem
     , deleteItem: deleteItem
 };
