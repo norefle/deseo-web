@@ -25,14 +25,13 @@
 
         function load() {
             gapi.load("auth2", init);
+            app = Elm.Main.fullscreen();
         }
 
         function init() {
             gapi.auth2.init({
                 client_id: "710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"
             }).then(function (googleAuth) {
-                app = Elm.Main.fullscreen();
-
                 app.ports.login.subscribe(function (_) {
                     googleAuth.signIn().then(function () {
                         onSignIn(googleAuth.currentUser.get());
