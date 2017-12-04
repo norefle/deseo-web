@@ -17,7 +17,7 @@ view =
                 [ div [ class "card" ]
                     [ div [ class "card-body" ]
                         [ h4 [ class "card-title" ]
-                            [ text "Sign in" ]
+                            [ text "Log in with" ]
                         , div
                             [ class "d-flex justify-content-center" ]
                             [ a
@@ -30,7 +30,7 @@ view =
                                     , src "/images/logo-google.svg"
                                     ]
                                     []
-                                , text "Log in with google"
+                                , text "google"
                                 ]
                             ]
                         ]
