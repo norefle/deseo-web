@@ -73,7 +73,9 @@ function listItems(user, listId) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.read) {
             return collection(COLLECTION_NAME_LISTS, (table) => {
-                return table.find({ user }).toArray();
+                return table.find({ user })
+                    .sort([["priority", 1]])
+                    .toArray();
             });
         } else {
             throw "Access denied";
