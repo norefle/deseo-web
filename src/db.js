@@ -4,9 +4,8 @@ const DB_URL = process.env.DB_URL;
 const DB_USER = process.env.DB_USER;
 const DB_PASSWD = process.env.DB_PASSWD;
 
-function buildListName(listId) {
-    return `list:${listId}`;
-}
+const COLLECTION_NAME_USERS = "users";
+const COLLECTION_NAME_LISTS = "lists";
 
 function client() {
     let url = `mongodb://${DB_USER}:${DB_PASSWD}@${DB_URL}`;
@@ -26,7 +25,7 @@ function collection(name, callback) {
 }
 
 function listLists(user) {
-    return collection("users", (table) => {
+    return collection(COLLECTION_NAME_USERS, (table) => {
         // TODO: list all lists user could read, write, own
         return table.find({ owner: user }).toArray();
     }).then((lists) => {
@@ -43,7 +42,7 @@ function listLists(user) {
 }
 
 function createList(user, name) {
-    return collection("users", (table) => {
+    return collection(COLLECTION_NAME_USERS, (table) => {
         return table.insertOne({
             list: name
             , owner: user
@@ -73,7 +72,7 @@ function getAccess(user, listId) {
 function listItems(user, listId) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.read) {
-            return collection(buildListName(listId), (table) => {
+            return collection(COLLECTION_NAME_LISTS, (table) => {
                 return table.find({ user }).toArray();
             });
         } else {
@@ -87,7 +86,7 @@ function listItems(user, listId) {
 function createItem(user, listId, item) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.write) {
-            return collection(buildListName(listId), (table) => {
+            return collection(COLLECTION_NAME_LISTS, (table) => {
                 item.user = user;
                 return table.insertOne(item);
             });
@@ -102,7 +101,7 @@ function createItem(user, listId, item) {
 function deleteItem(user, listId, item) {
     return getAccess(user, listId).then((access) => {
         if (access.owner || access.write) {
-            return collection(buildListName(listId), (table) => {
+            return collection(COLLECTION_NAME_LISTS, (table) => {
                 return table.deleteOne({ _id: ObjectId(item.id) });
             });
         } else {
