@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="styles/material.min.css" />
 
     <script src="https://apis.google.com/js/platform.js"></script>
+    <script src="https://connect.facebook.net/en_US/sdk.js"></script>
     <script type="text/javascript" src="scripts/jquery-3.2.1.slim.min.js"></script>
     <script type="text/javascript" src="scripts/popper.min.js"></script>
     <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
@@ -22,10 +23,37 @@
 <body>
     <script type="text/javascript">
         var app;
+        var auth = { google : null, facebook : null };
 
         function load() {
             gapi.load("auth2", init);
             app = Elm.Main.fullscreen();
+        }
+
+        function initGoogle() {
+            gapi.auth2.init({
+                client_id: "710628858886-ru6o75dib51mnlk7fnr8p2l4vhf3u9kp.apps.googleusercontent.com"
+            }).then(function (googleAuth) {
+                auth.google = googleAuth;
+            }).catch(function (err) {
+                console.error("Logged with failure", err);
+            });
+        }
+
+        function initFacebook() {
+            FB.init({
+                appId : '475444246190922'
+                , cookie : true
+                , xfbml : true
+                , version : 'v2.11'
+            });
+            auth.facebook = FB;
+        }
+
+        function isLoggedIn() {
+            FB.getLoginStatus(function(response) {
+                console.log("FB:", response);
+            });
         }
 
         function init() {
